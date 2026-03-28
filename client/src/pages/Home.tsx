@@ -53,8 +53,8 @@ export default function Home() {
     return (
       <div className="min-h-screen bg-gradient-to-b from-orange-50 to-white">
         <div className="container mx-auto px-4 py-12 text-center">
-          <h1 className="text-5xl font-bold text-gray-900 mb-4">Zomato Ecosystem</h1>
-          <p className="text-xl text-gray-600 mb-8">Order food from your favorite restaurants</p>
+          <h1 className="text-5xl font-bold text-orange-600 mb-4">🍽️ Bharatpur Bite</h1>
+          <p className="text-xl text-gray-600 mb-8">अपने पसंदीदा रेस्तरां से खाना ऑर्डर करें | Order food from your favorite restaurants</p>
           <Button
             onClick={() => {
               window.location.href = getLoginUrl();
@@ -74,7 +74,7 @@ export default function Home() {
       <div className="bg-white shadow-sm sticky top-0 z-10">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between mb-4">
-            <h1 className="text-2xl font-bold text-orange-600">Zomato</h1>
+            <h1 className="text-2xl font-bold text-orange-600">🍽️ Bharatpur Bite</h1>
             <div className="text-sm text-gray-600">
               <MapPin className="inline w-4 h-4 mr-1" />
               {latitude && longitude ? "Current Location" : "Location"}
