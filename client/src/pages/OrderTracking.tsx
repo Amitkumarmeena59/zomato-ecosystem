@@ -220,10 +220,11 @@ export default function OrderTracking() {
 
             {/* WhatsApp Support */}
             <a
-              href="https://wa.me/919876543210?text=I%20need%20help%20with%20my%20order"
+              href={`https://wa.me/919876543210?text=I%20need%20help%20with%20my%20order%20${order.orderId}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="fixed bottom-6 right-6 bg-green-500 hover:bg-green-600 text-white rounded-full p-4 shadow-lg flex items-center justify-center"
+              className="fixed bottom-6 right-6 bg-green-500 hover:bg-green-600 text-white rounded-full p-4 shadow-lg flex items-center justify-center z-50 transition-transform hover:scale-110"
+              title="Chat with support on WhatsApp"
             >
               <MessageCircle className="w-6 h-6" />
             </a>
