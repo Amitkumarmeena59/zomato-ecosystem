@@ -7,8 +7,7 @@ import OrderTracking from "@/pages/OrderTracking";
 import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
-import RestaurantDashboard from "@/pages/RestaurantDashboard";
-import RiderDashboard from "@/pages/RiderDashboard";
+// Restaurant and Rider dashboards moved to Flutter mobile apps
 import AdminPanel from "@/pages/AdminPanel";
 
 function Router() {
@@ -17,8 +16,7 @@ function Router() {
       <Route path={"/"} component={Home} />
       <Route path={"/restaurant/:id"} component={RestaurantDetail} />
       <Route path={"/order/:orderId"} component={OrderTracking} />
-      <Route path={"/restaurant-dashboard"} component={RestaurantDashboard} />
-      <Route path={"/rider-dashboard"} component={RiderDashboard} />
+      {/* Restaurant and Rider dashboards are now in Flutter mobile apps */}
       <Route path={"/admin-panel"} component={AdminPanel} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
