@@ -405,6 +405,49 @@ export const appRouter = router({
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       }
     }),
+
+    getLocationByOrder: protectedProcedure
+      .input(z.object({ orderId: z.number() }))
+      .query(async ({ ctx, input }) => {
+        try {
+          const order = await db.getOrderById(input.orderId);
+          if (!order) throw new TRPCError({ code: "NOT_FOUND" });
+          const isCustomer = ctx.user?.id === order.customerId;
+          const isAdmin = ctx.user?.role === "admin";
+          if (!isCustomer && !isAdmin) {
+            throw new TRPCError({ code: "FORBIDDEN" });
+          }
+          if (!order.riderId) throw new TRPCError({ code: "NOT_FOUND", message: "No rider assigned" });
+          const rider = await db.getRiderById(order.riderId);
+          if (!rider) throw new TRPCError({ code: "NOT_FOUND" });
+          return {
+            riderId: rider.id,
+            riderName: rider.name,
+            latitude: rider.currentLatitude,
+            longitude: rider.currentLongitude,
+            isActive: rider.isActive,
+            rating: rider.rating,
+          };
+        } catch (error) {
+          throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+        }
+      }),
+
+    getAllActiveRiders: adminProcedure.query(async () => {
+      try {
+        const riders = await db.getAvailableRiders();
+        return riders.map((rider: any) => ({
+          riderId: rider.id,
+          riderName: rider.name,
+          latitude: rider.currentLatitude,
+          longitude: rider.currentLongitude,
+          isActive: rider.isActive,
+          rating: rider.rating,
+        }));
+      } catch (error) {
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+      }
+    }),
   }),
 
   // Payment Management

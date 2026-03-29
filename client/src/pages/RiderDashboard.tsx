@@ -1,9 +1,9 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
-import { MapPin, Power, CheckCircle, TrendingUp, LogOut, Navigation, Phone, MessageCircle, Clock, AlertCircle } from "lucide-react";
+import { MapPin, Power, CheckCircle, TrendingUp, LogOut, Navigation, Phone, MessageCircle, Clock, AlertCircle, Menu, HelpCircle, Bell, ShoppingBag, Home, MoreVertical } from "lucide-react";
 import { MapView } from "@/components/Map";
 
 interface Order {
@@ -30,6 +30,7 @@ export default function RiderDashboard() {
   const [availableOrders, setAvailableOrders] = useState<Order[]>([]);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [showOrderDetails, setShowOrderDetails] = useState(false);
+  const [activeTab, setActiveTab] = useState("map");
   const mapRef = useRef<any>(null);
   const directionsServiceRef = useRef<any>(null);
   const directionsRendererRef = useRef<any>(null);
@@ -55,14 +56,9 @@ export default function RiderDashboard() {
         title: "Your Location",
         icon: "http://maps.google.com/mapfiles/ms/icons/blue-dot.png",
       });
-
-      map.setCenter({ lat: location.lat, lng: location.lng });
-      map.setZoom(15);
     }
-  };
 
-  // Get current location
-  useEffect(() => {
+    // Get user's current location
     if (navigator.geolocation) {
       navigator.geolocation.watchPosition((position) => {
         const newLocation = {
@@ -70,314 +66,305 @@ export default function RiderDashboard() {
           lng: position.coords.longitude,
         };
         setLocation(newLocation);
-
-        // Update location on server
-        if (dutyActive) {
-          updateLocationMutation.mutate({
-            latitude: newLocation.lat,
-            longitude: newLocation.lng,
-          });
-        }
-
-        // Update map center
-        if (mapRef.current) {
-          mapRef.current.setCenter(newLocation);
-        }
+        map.setCenter(newLocation);
       });
     }
-
-    // Simulate available orders
-    setAvailableOrders([
-      {
-        id: 1001,
-        restaurantName: "Taj Express",
-        restaurantAddress: "123 Main St, Bharatpur",
-        customerName: "Rajesh Kumar",
-        customerAddress: "456 Park Ave, Bharatpur",
-        distance: 2.5,
-        estimatedTime: 15,
-        amount: 250,
-        status: "pending",
-        pickupLat: 27.2183,
-        pickupLng: 77.4944,
-        deliveryLat: 27.2200,
-        deliveryLng: 77.5000,
-      },
-      {
-        id: 1002,
-        restaurantName: "Dragon Palace",
-        restaurantAddress: "789 Oak Rd, Bharatpur",
-        customerName: "Priya Singh",
-        customerAddress: "321 Elm St, Bharatpur",
-        distance: 3.2,
-        estimatedTime: 20,
-        amount: 320,
-        status: "pending",
-        pickupLat: 27.2150,
-        pickupLng: 77.4900,
-        deliveryLat: 27.2250,
-        deliveryLng: 77.5050,
-      },
-      {
-        id: 1003,
-        restaurantName: "Burger Barn",
-        restaurantAddress: "555 Main Rd, Bharatpur",
-        customerName: "Amit Patel",
-        customerAddress: "999 Central Ave, Bharatpur",
-        distance: 1.8,
-        estimatedTime: 12,
-        amount: 180,
-        status: "pending",
-        pickupLat: 27.2200,
-        pickupLng: 77.4950,
-        deliveryLat: 27.2180,
-        deliveryLng: 77.5020,
-      },
-    ]);
-
-    // Simulate active deliveries
-    setActiveDeliveries([
-      {
-        id: 2001,
-        restaurantName: "Test Restaurant",
-        restaurantAddress: "100 Food St, Bharatpur",
-        customerName: "Vikram Sharma",
-        customerAddress: "888 Delivery Lane, Bharatpur",
-        distance: 1.2,
-        estimatedTime: 8,
-        amount: 280,
-        status: "on_the_way",
-        pickupLat: 27.2190,
-        pickupLng: 77.4960,
-        deliveryLat: 27.2210,
-        deliveryLng: 77.5010,
-      },
-    ]);
-  }, [dutyActive]);
+  };
 
   const handleToggleDuty = async () => {
     try {
-      await toggleDutyMutation.mutateAsync({
-        isActive: !dutyActive,
-      });
+      await toggleDutyMutation.mutateAsync({ isActive: !dutyActive });
       setDutyActive(!dutyActive);
     } catch (error) {
       alert("Failed to toggle duty");
     }
   };
 
-  const handleAcceptOrder = (order: Order) => {
-    setSelectedOrder(order);
-    setActiveDeliveries([...activeDeliveries, { ...order, status: "accepted" }]);
-    setAvailableOrders(availableOrders.filter((o) => o.id !== order.id));
-    showRoute(order);
+  const handleAcceptOrder = async (order: Order) => {
+    try {
+      // Update order status to accepted
+      setActiveDeliveries([...activeDeliveries, order]);
+      setAvailableOrders(availableOrders.filter((o) => o.id !== order.id));
+    } catch (error) {
+      alert("Failed to accept order");
+    }
   };
 
-  const showRoute = (order: Order) => {
-    if (!directionsServiceRef.current || !mapRef.current || !location) return;
+  const handleMarkDelivered = async (order: Order) => {
+    try {
+      // Update order status to delivered
+      setActiveDeliveries(activeDeliveries.filter((o) => o.id !== order.id));
+    } catch (error) {
+      alert("Failed to mark as delivered");
+    }
+  };
 
-    directionsServiceRef.current.route(
+  // Mock data for demonstration
+  useEffect(() => {
+    setAvailableOrders([
       {
-        origin: { lat: location.lat, lng: location.lng },
-        destination: { lat: order.pickupLat || 0, lng: order.pickupLng || 0 },
-        waypoints: [{ location: { lat: order.deliveryLat || 0, lng: order.deliveryLng || 0 } }],
-        travelMode: (window as any).google.maps.TravelMode.DRIVING,
+        id: 1,
+        restaurantName: "Taj Express",
+        restaurantAddress: "123 Main St",
+        customerName: "Rajesh Kumar",
+        customerAddress: "456 Oak Ave",
+        distance: 2.5,
+        estimatedTime: 15,
+        amount: 250,
+        status: "pending",
       },
-      (result: any, status: any) => {
-        if (status === (window as any).google.maps.DirectionsStatus.OK) {
-          directionsRendererRef.current.setDirections(result);
-        }
-      }
-    );
-  };
-
-  const handleMarkDelivered = (orderId: number) => {
-    setActiveDeliveries(activeDeliveries.filter((o) => o.id !== orderId));
-    setSelectedOrder(null);
-  };
+      {
+        id: 2,
+        restaurantName: "Dragon Palace",
+        restaurantAddress: "789 Elm St",
+        customerName: "Priya Singh",
+        customerAddress: "321 Maple Dr",
+        distance: 3.2,
+        estimatedTime: 20,
+        amount: 320,
+        status: "pending",
+      },
+    ]);
+  }, []);
 
   return (
-    <div className="min-h-screen bg-gray-900 flex flex-col">
+    <div className="min-h-screen bg-gray-50 pb-20">
       {/* Header */}
-      <div className="bg-gradient-to-r from-orange-600 to-orange-500 shadow-lg sticky top-0 z-20">
-        <div className="px-4 py-3 flex items-center justify-between">
+      <div className="bg-white sticky top-0 z-10 shadow-sm">
+        <div className="flex items-center justify-between p-4">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center">
-              <Navigation className="w-6 h-6 text-orange-600" />
+            <div className="w-10 h-10 bg-gradient-to-br from-orange-400 to-orange-600 rounded-full flex items-center justify-center text-white font-bold">
+              {user?.name?.charAt(0) || "R"}
             </div>
             <div>
-              <h1 className="text-xl font-bold text-white">Rider Dashboard</h1>
-              <p className="text-xs text-orange-100">Real-time Delivery Tracking</p>
+              <p className="text-sm font-semibold">{user?.name || "Rider"}</p>
+              <p className="text-xs text-gray-500">ID: #RD{user?.id}</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <div className={`px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1 ${dutyActive ? "bg-green-400 text-green-900" : "bg-red-400 text-red-900"}`}>
-              <div className={`w-2 h-2 rounded-full ${dutyActive ? "bg-green-900" : "bg-red-900"}`}></div>
-              {dutyActive ? "Online" : "Offline"}
+            <button className="p-2 hover:bg-gray-100 rounded-full">
+              <HelpCircle className="w-5 h-5 text-gray-600" />
+            </button>
+            <button className="p-2 hover:bg-gray-100 rounded-full">
+              <Menu className="w-5 h-5 text-gray-600" />
+            </button>
+          </div>
+        </div>
+
+        {/* Offline/Online Toggle */}
+        <div className="px-4 pb-4">
+          <div className="flex items-center justify-between bg-gradient-to-r from-gray-100 to-gray-50 p-3 rounded-full">
+            <div className="flex items-center gap-2">
+              <div className={`w-4 h-4 rounded-full ${dutyActive ? "bg-green-500" : "bg-gray-400"}`}></div>
+              <span className="font-semibold text-sm">{dutyActive ? "Online" : "Offline"}</span>
             </div>
-            <Button
-              onClick={() => logout()}
-              variant="ghost"
-              className="text-white hover:bg-orange-700"
-              size="sm"
+            <button
+              onClick={handleToggleDuty}
+              className={`px-6 py-2 rounded-full font-semibold text-sm transition ${
+                dutyActive
+                  ? "bg-red-500 text-white hover:bg-red-600"
+                  : "bg-green-500 text-white hover:bg-green-600"
+              }`}
+              disabled={toggleDutyMutation.isPending}
             >
-              <LogOut className="w-4 h-4" />
-            </Button>
+              {toggleDutyMutation.isPending ? "..." : dutyActive ? "Go Offline" : "Go Online"}
+            </button>
           </div>
         </div>
       </div>
 
-      <div className="flex-1 flex gap-4 p-4 overflow-hidden">
-        {/* Full Screen Map */}
-        <div className="flex-1 rounded-lg overflow-hidden shadow-lg border-2 border-orange-500">
-          <MapView onMapReady={handleMapReady} className="w-full h-full" />
-        </div>
-
-        {/* Right Sidebar - Orders & Info */}
-        <div className="w-96 flex flex-col gap-4 overflow-y-auto">
-          {/* Duty Toggle Card */}
-          <Card className="p-4 bg-gradient-to-br from-orange-50 to-yellow-50 border-2 border-orange-200">
-            <div className="flex items-center justify-between mb-3">
-              <div>
-                <p className="text-sm text-gray-600">Duty Status</p>
-                <p className={`text-2xl font-bold ${dutyActive ? "text-green-600" : "text-red-600"}`}>
-                  {dutyActive ? "🟢 Online" : "🔴 Offline"}
-                </p>
-              </div>
-              <Button
-                onClick={handleToggleDuty}
-                className={`px-6 py-4 text-base font-bold flex items-center gap-2 ${
-                  dutyActive
-                    ? "bg-red-500 hover:bg-red-600"
-                    : "bg-green-500 hover:bg-green-600"
-                }`}
-                disabled={toggleDutyMutation.isPending}
-              >
-                <Power className="w-5 h-5" />
-                {dutyActive ? "Go Offline" : "Go Online"}
-              </Button>
-            </div>
-            {location && (
-              <div className="text-xs text-gray-600 flex items-center gap-1">
-                <MapPin className="w-3 h-3" />
-                {location.lat.toFixed(4)}, {location.lng.toFixed(4)}
-              </div>
-            )}
-          </Card>
-
-          {/* Stats */}
-          <div className="grid grid-cols-2 gap-3">
-            <Card className="p-3 bg-blue-50 border-blue-200">
-              <p className="text-xs text-gray-600 mb-1">Total Earnings</p>
-              <p className="text-xl font-bold text-blue-600">₹2,450</p>
+      {/* Main Content */}
+      <div className="p-4 space-y-4">
+        {dutyActive ? (
+          <>
+            {/* Map Section */}
+            <Card className="p-0 overflow-hidden h-64 border-0 shadow-md">
+              <MapView className="w-full h-full" />
             </Card>
-            <Card className="p-3 bg-purple-50 border-purple-200">
-              <p className="text-xs text-gray-600 mb-1">Deliveries</p>
-              <p className="text-xl font-bold text-purple-600">12</p>
-            </Card>
-          </div>
 
-          {/* Active Delivery Details */}
-          {selectedOrder && (
-            <Card className="p-4 bg-green-50 border-2 border-green-300">
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="font-bold text-green-900">Active Delivery</h3>
-                <span className="text-xs bg-green-200 text-green-900 px-2 py-1 rounded-full font-semibold">On the way</span>
+            {/* Gig Details Section */}
+            <Card className="p-4 bg-black text-white rounded-lg">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="w-8 h-8 bg-white text-black rounded-full flex items-center justify-center font-bold text-sm">
+                  9
+                </div>
+                <h2 className="text-lg font-bold">Gig details</h2>
               </div>
-              <div className="space-y-2 text-sm mb-3">
-                <div className="flex items-start gap-2">
-                  <MapPin className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
-                  <div>
-                    <p className="font-semibold text-gray-900">Pickup: {selectedOrder.restaurantName}</p>
-                    <p className="text-xs text-gray-600">{selectedOrder.restaurantAddress}</p>
-                  </div>
+              <div className="flex items-center justify-between">
+                <p className="text-sm">Book gigs to deliver orders</p>
+                <Button className="bg-green-500 hover:bg-green-600 text-white font-semibold px-6 rounded-full">
+                  Book Gigs
+                </Button>
+              </div>
+            </Card>
+
+            {/* Today's Progress Section */}
+            <Card className="p-4 bg-black text-white rounded-lg">
+              <div className="flex items-center gap-2 mb-4">
+                <CheckCircle className="w-6 h-6" />
+                <h2 className="text-lg font-bold">Today's progress</h2>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="bg-gray-900 p-4 rounded-lg">
+                  <p className="text-2xl font-bold text-green-400">₹{activeDeliveries.length * 50}</p>
+                  <p className="text-xs text-gray-400 mt-1">Earnings →</p>
                 </div>
-                <div className="flex items-start gap-2">
-                  <MapPin className="w-4 h-4 text-orange-600 mt-0.5 flex-shrink-0" />
-                  <div>
-                    <p className="font-semibold text-gray-900">Delivery: {selectedOrder.customerName}</p>
-                    <p className="text-xs text-gray-600">{selectedOrder.customerAddress}</p>
-                  </div>
+                <div className="bg-gray-900 p-4 rounded-lg">
+                  <p className="text-2xl font-bold">{activeDeliveries.length}</p>
+                  <p className="text-xs text-gray-400 mt-1">Trips →</p>
+                </div>
+                <div className="bg-gray-900 p-4 rounded-lg">
+                  <p className="text-2xl font-bold">00:45 hrs</p>
+                  <p className="text-xs text-gray-400 mt-1">Time on orders →</p>
+                </div>
+                <div className="bg-gray-900 p-4 rounded-lg">
+                  <p className="text-2xl font-bold">{activeDeliveries.length}</p>
+                  <p className="text-xs text-gray-400 mt-1">Gigs History →</p>
                 </div>
               </div>
-              <div className="grid grid-cols-3 gap-2 mb-3 text-center text-xs">
-                <div className="bg-white p-2 rounded">
-                  <p className="text-gray-600">Distance</p>
-                  <p className="font-bold text-orange-600">{selectedOrder.distance} km</p>
+            </Card>
+
+            {/* Blue Partner Section */}
+            <Card className="p-4 bg-black text-white rounded-lg">
+              <div className="flex items-center gap-2 mb-4">
+                <div className="w-6 h-6 bg-blue-500 rounded-full"></div>
+                <h2 className="text-lg font-bold">Blue Partner</h2>
+              </div>
+              <div className="grid grid-cols-2 gap-4 mb-4">
+                <div className="bg-gray-900 p-4 rounded-lg text-center">
+                  <p className="text-2xl font-bold">{activeDeliveries.length}</p>
+                  <p className="text-xs text-gray-400 mt-1">Perfect Orders</p>
                 </div>
-                <div className="bg-white p-2 rounded">
-                  <p className="text-gray-600">ETA</p>
-                  <p className="font-bold text-blue-600">{selectedOrder.estimatedTime} min</p>
-                </div>
-                <div className="bg-white p-2 rounded">
-                  <p className="text-gray-600">Amount</p>
-                  <p className="font-bold text-green-600">₹{selectedOrder.amount}</p>
+                <div className="bg-gray-900 p-4 rounded-lg text-center">
+                  <p className="text-2xl font-bold">0</p>
+                  <p className="text-xs text-gray-400 mt-1">Total Issues</p>
                 </div>
               </div>
-              <Button
-                onClick={() => handleMarkDelivered(selectedOrder.id)}
-                className="w-full bg-green-600 hover:bg-green-700 text-white flex items-center justify-center gap-2"
-              >
-                <CheckCircle className="w-4 h-4" />
-                Mark as Delivered
+              <Button className="w-full bg-gray-900 hover:bg-gray-800 text-white border border-gray-700">
+                View full report →
               </Button>
             </Card>
-          )}
 
-          {/* Available Orders */}
-          {dutyActive && availableOrders.length > 0 && (
-            <div>
-              <h3 className="font-bold text-white mb-2">Available Orders ({availableOrders.length})</h3>
-              <div className="space-y-2 max-h-64 overflow-y-auto">
-                {availableOrders.map((order) => (
-                  <Card key={order.id} className="p-3 bg-white border-l-4 border-orange-500 hover:shadow-md transition cursor-pointer">
-                    <div className="flex justify-between items-start mb-2">
-                      <div>
-                        <p className="font-bold text-sm">Order #{order.id}</p>
-                        <p className="text-xs text-gray-600">{order.restaurantName}</p>
+            {/* Active Deliveries */}
+            {activeDeliveries.length > 0 && (
+              <Card className="p-4">
+                <h3 className="font-bold mb-3 flex items-center gap-2">
+                  <Navigation className="w-5 h-5 text-orange-500" />
+                  Active Deliveries ({activeDeliveries.length})
+                </h3>
+                <div className="space-y-3">
+                  {activeDeliveries.map((order) => (
+                    <Card key={order.id} className="p-3 border-l-4 border-orange-500">
+                      <div className="flex justify-between items-start mb-2">
+                        <div>
+                          <p className="font-semibold text-sm">{order.restaurantName}</p>
+                          <p className="text-xs text-gray-600">→ {order.customerName}</p>
+                        </div>
+                        <span className="text-sm font-bold text-orange-600">₹{order.amount}</span>
                       </div>
-                      <p className="font-bold text-orange-600">₹{order.amount}</p>
-                    </div>
-                    <div className="flex items-center gap-4 text-xs text-gray-600 mb-2">
-                      <span className="flex items-center gap-1">
-                        <MapPin className="w-3 h-3" />
-                        {order.distance} km
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <Clock className="w-3 h-3" />
-                        {order.estimatedTime} min
-                      </span>
-                    </div>
-                    <Button
-                      onClick={() => handleAcceptOrder(order)}
-                      className="w-full bg-orange-500 hover:bg-orange-600 text-white text-xs py-1 flex items-center justify-center gap-1"
-                    >
-                      <Navigation className="w-3 h-3" />
-                      Accept & Navigate
-                    </Button>
-                  </Card>
-                ))}
+                      <div className="flex gap-2 text-xs text-gray-600 mb-3">
+                        <span className="flex items-center gap-1">
+                          <MapPin className="w-3 h-3" />
+                          {order.distance} km
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <Clock className="w-3 h-3" />
+                          {order.estimatedTime} min
+                        </span>
+                      </div>
+                      <Button
+                        onClick={() => handleMarkDelivered(order)}
+                        className="w-full bg-green-500 hover:bg-green-600 text-white text-xs"
+                        size="sm"
+                      >
+                        Mark as Delivered
+                      </Button>
+                    </Card>
+                  ))}
+                </div>
+              </Card>
+            )}
+
+            {/* Available Orders */}
+            <Card className="p-4">
+              <h3 className="font-bold mb-3 flex items-center gap-2">
+                <ShoppingBag className="w-5 h-5 text-blue-500" />
+                Available Orders ({availableOrders.length})
+              </h3>
+              <div className="space-y-3">
+                {availableOrders.length === 0 ? (
+                  <p className="text-center text-gray-500 py-4">No orders available</p>
+                ) : (
+                  availableOrders.map((order) => (
+                    <Card key={order.id} className="p-3 border-l-4 border-blue-500">
+                      <div className="flex justify-between items-start mb-2">
+                        <div>
+                          <p className="font-semibold text-sm">{order.restaurantName}</p>
+                          <p className="text-xs text-gray-600">→ {order.customerName}</p>
+                        </div>
+                        <span className="text-sm font-bold text-blue-600">₹{order.amount}</span>
+                      </div>
+                      <div className="flex gap-2 text-xs text-gray-600 mb-3">
+                        <span className="flex items-center gap-1">
+                          <MapPin className="w-3 h-3" />
+                          {order.distance} km
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <Clock className="w-3 h-3" />
+                          {order.estimatedTime} min
+                        </span>
+                      </div>
+                      <Button
+                        onClick={() => handleAcceptOrder(order)}
+                        className="w-full bg-blue-500 hover:bg-blue-600 text-white text-xs"
+                        size="sm"
+                      >
+                        Accept Order
+                      </Button>
+                    </Card>
+                  ))
+                )}
               </div>
-            </div>
-          )}
-
-          {/* No Orders Message */}
-          {dutyActive && availableOrders.length === 0 && activeDeliveries.length === 0 && (
-            <Card className="p-6 text-center bg-blue-50 border-blue-200">
-              <AlertCircle className="w-8 h-8 text-blue-600 mx-auto mb-2" />
-              <p className="text-sm text-gray-600">No orders available right now</p>
-              <p className="text-xs text-gray-500 mt-1">Stay online to receive new orders</p>
             </Card>
-          )}
+          </>
+        ) : (
+          <Card className="p-8 text-center">
+            <Power className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+            <h3 className="text-lg font-bold mb-2">You're Offline</h3>
+            <p className="text-gray-600 mb-6">Go online to start accepting orders</p>
+            <Button
+              onClick={handleToggleDuty}
+              className="bg-green-500 hover:bg-green-600 text-white font-semibold px-8"
+            >
+              Go Online
+            </Button>
+          </Card>
+        )}
+      </div>
 
-          {!dutyActive && (
-            <Card className="p-6 text-center bg-red-50 border-red-200">
-              <Power className="w-8 h-8 text-red-600 mx-auto mb-2" />
-              <p className="text-sm font-semibold text-red-900">You are offline</p>
-              <p className="text-xs text-gray-600 mt-1">Go online to accept orders</p>
-            </Card>
-          )}
-        </div>
+      {/* Bottom Navigation */}
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 flex items-center justify-around">
+        <button className="flex-1 py-3 flex flex-col items-center gap-1 text-gray-600 hover:text-orange-600 border-b-2 border-transparent hover:border-orange-600">
+          <Home className="w-5 h-5" />
+          <span className="text-xs font-semibold">Feed</span>
+        </button>
+        <button className="flex-1 py-3 flex flex-col items-center gap-1 text-gray-600 hover:text-orange-600 border-b-2 border-transparent hover:border-orange-600">
+          <ShoppingBag className="w-5 h-5" />
+          <span className="text-xs font-semibold">Pocket</span>
+        </button>
+        <button className="flex-1 py-3 flex flex-col items-center gap-1 text-orange-600 border-b-2 border-orange-600">
+          <Navigation className="w-5 h-5" />
+          <span className="text-xs font-semibold">Gigs</span>
+        </button>
+        <button className="flex-1 py-3 flex flex-col items-center gap-1 text-gray-600 hover:text-orange-600 border-b-2 border-transparent hover:border-orange-600">
+          <ShoppingBag className="w-5 h-5" />
+          <span className="text-xs font-semibold">Bazaar</span>
+        </button>
+        <button className="flex-1 py-3 flex flex-col items-center gap-1 text-gray-600 hover:text-orange-600 border-b-2 border-transparent hover:border-orange-600 relative">
+          <Bell className="w-5 h-5" />
+          <span className="text-xs font-semibold">Updates</span>
+          <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full"></span>
+        </button>
       </div>
     </div>
   );

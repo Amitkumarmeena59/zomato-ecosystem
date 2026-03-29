@@ -76,14 +76,14 @@
 - [x] Prepare test scenarios and dummy data
 
 
-## Phase 9: Enhanced Rider Panel & Real-time Tracking (NEW)
-- [ ] Redesign Rider Panel with full-screen interactive Google Map
-- [ ] Implement real-time GPS location tracking for riders
-- [ ] Add route navigation from restaurant to customer location
-- [ ] Add rider tracking to Restaurant Dashboard (see rider location after order pickup)
-- [ ] Add rider tracking to Customer Order Tracking (see rider location after pickup)
-- [ ] Add all riders tracking to Admin Panel with live map
-- [ ] Optimize performance for no lag/hanging with multiple concurrent users
-- [ ] Add offline/online status toggle for riders
-- [ ] Add delivery status updates (picked up, on the way, delivered)
-- [ ] Add distance and ETA calculation
+## Phase 9: Enhanced Rider Panel & Real-time Tracking (PRODUCTION)
+- [ ] Redesign Rider Dashboard with Zomato-like UI (Offline toggle, Gig details, Today's progress, Blue Partner)
+- [ ] Implement backend rider location pipeline (DB schema + real-time GPS updates)
+- [ ] Add Google Directions API integration for routes and distance/ETA
+- [ ] Implement access control - restaurant tracking only until pickup
+- [ ] Implement access control - customer/admin tracking after pickup
+- [ ] Update Restaurant Dashboard with conditional rider tracking (only until pickup)
+- [ ] Update Customer Order Tracking with real-time rider location (after pickup)
+- [ ] Update Admin Panel with all riders live tracking
+- [ ] Add live map markers with real rider coordinates
+- [ ] Implement performance optimization for concurrent tracking updates
