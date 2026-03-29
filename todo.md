@@ -74,3 +74,16 @@
 - [x] Generate live preview link
 - [x] Create documentation
 - [x] Prepare test scenarios and dummy data
+
+
+## Phase 9: Enhanced Rider Panel & Real-time Tracking (NEW)
+- [ ] Redesign Rider Panel with full-screen interactive Google Map
+- [ ] Implement real-time GPS location tracking for riders
+- [ ] Add route navigation from restaurant to customer location
+- [ ] Add rider tracking to Restaurant Dashboard (see rider location after order pickup)
+- [ ] Add rider tracking to Customer Order Tracking (see rider location after pickup)
+- [ ] Add all riders tracking to Admin Panel with live map
+- [ ] Optimize performance for no lag/hanging with multiple concurrent users
+- [ ] Add offline/online status toggle for riders
+- [ ] Add delivery status updates (picked up, on the way, delivered)
+- [ ] Add distance and ETA calculation

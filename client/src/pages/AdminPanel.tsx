@@ -4,7 +4,8 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
-import { Plus, Edit2, Trash2, Settings, LogOut, Zap } from "lucide-react";
+import { Plus, Edit2, Trash2, Settings, LogOut, Zap, MapPin, Users } from "lucide-react";
+import { MapView } from "@/components/Map";
 
 export default function AdminPanel() {
   const { user, logout } = useAuth();
@@ -80,10 +81,10 @@ export default function AdminPanel() {
 
       <div className="container mx-auto px-4 py-8">
         {/* Tabs */}
-        <div className="flex gap-4 mb-8 border-b">
+        <div className="flex gap-4 mb-8 border-b overflow-x-auto">
           <button
             onClick={() => setActiveTab("restaurants")}
-            className={`px-4 py-2 font-semibold border-b-2 ${
+            className={`px-4 py-2 font-semibold border-b-2 whitespace-nowrap ${
               activeTab === "restaurants"
                 ? "border-orange-500 text-orange-600"
                 : "border-transparent text-gray-600"
@@ -92,8 +93,18 @@ export default function AdminPanel() {
             Restaurants
           </button>
           <button
+            onClick={() => setActiveTab("riders")}
+            className={`px-4 py-2 font-semibold border-b-2 whitespace-nowrap ${
+              activeTab === "riders"
+                ? "border-orange-500 text-orange-600"
+                : "border-transparent text-gray-600"
+            }`}
+          >
+            Riders Tracking
+          </button>
+          <button
             onClick={() => setActiveTab("payouts")}
-            className={`px-4 py-2 font-semibold border-b-2 ${
+            className={`px-4 py-2 font-semibold border-b-2 whitespace-nowrap ${
               activeTab === "payouts"
                 ? "border-orange-500 text-orange-600"
                 : "border-transparent text-gray-600"
@@ -103,7 +114,7 @@ export default function AdminPanel() {
           </button>
           <button
             onClick={() => setActiveTab("settings")}
-            className={`px-4 py-2 font-semibold border-b-2 ${
+            className={`px-4 py-2 font-semibold border-b-2 whitespace-nowrap ${
               activeTab === "settings"
                 ? "border-orange-500 text-orange-600"
                 : "border-transparent text-gray-600"
@@ -228,6 +239,60 @@ export default function AdminPanel() {
                     </Card>
                   ))
                 )}
+              </div>
+            </Card>
+          </div>
+        )}
+
+        {/* Riders Tracking Tab */}
+        {activeTab === "riders" && (
+          <div className="space-y-6">
+            <Card className="p-6 bg-gradient-to-r from-green-50 to-emerald-50">
+              <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
+                <MapPin className="w-5 h-5 text-green-600" />
+                Live Riders Tracking
+              </h2>
+              <p className="text-sm text-gray-600">Real-time GPS tracking of all active delivery partners</p>
+            </Card>
+
+            <Card className="p-6">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {/* Map */}
+                <div className="lg:col-span-2 rounded-lg overflow-hidden h-96 border-2 border-green-200">
+                  <MapView className="w-full h-full" />
+                </div>
+
+                {/* Riders List */}
+                <div className="space-y-3">
+                  <h3 className="font-bold flex items-center gap-2">
+                    <Users className="w-5 h-5" />
+                    Active Riders (5)
+                  </h3>
+                  <div className="space-y-2 max-h-96 overflow-y-auto">
+                    {[
+                      { id: 1, name: "Rajesh Kumar", status: "On Delivery", distance: "1.2 km", rating: 4.8 },
+                      { id: 2, name: "Priya Singh", status: "On Delivery", distance: "2.5 km", rating: 4.9 },
+                      { id: 3, name: "Amit Patel", status: "Idle", distance: "0.5 km", rating: 4.7 },
+                      { id: 4, name: "Neha Sharma", status: "On Delivery", distance: "3.1 km", rating: 4.6 },
+                      { id: 5, name: "Vikram Singh", status: "Idle", distance: "1.8 km", rating: 4.8 },
+                    ].map((rider) => (
+                      <div key={rider.id} className="p-3 bg-gray-50 rounded-lg border-l-4 border-green-500">
+                        <div className="flex justify-between items-start mb-1">
+                          <h4 className="font-semibold text-sm">{rider.name}</h4>
+                          <span className={`text-xs px-2 py-1 rounded ${
+                            rider.status === "On Delivery"
+                              ? "bg-blue-100 text-blue-800"
+                              : "bg-gray-100 text-gray-800"
+                          }`}>
+                            {rider.status}
+                          </span>
+                        </div>
+                        <p className="text-xs text-gray-600">📍 {rider.distance} away</p>
+                        <p className="text-xs text-gray-600">⭐ {rider.rating}/5</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </div>
             </Card>
           </div>

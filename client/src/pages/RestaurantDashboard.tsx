@@ -1,14 +1,18 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
-import { Plus, Edit2, Trash2, CheckCircle, XCircle, TrendingUp, LogOut } from "lucide-react";
+import { Plus, Edit2, Trash2, CheckCircle, XCircle, TrendingUp, LogOut, MapPin, Navigation, Clock } from "lucide-react";
+import { MapView } from "@/components/Map";
 
 export default function RestaurantDashboard() {
   const { user, logout } = useAuth();
   const [showAddMenu, setShowAddMenu] = useState(false);
+  const [selectedOrder, setSelectedOrder] = useState<any>(null);
+  const [showRiderTracking, setShowRiderTracking] = useState(false);
+  const mapRef = useRef<any>(null);
   const [newItem, setNewItem] = useState({
     name: "",
     description: "",
@@ -26,6 +30,21 @@ export default function RestaurantDashboard() {
   // Mutations
   const createMenuMutation = trpc.menu.create.useMutation();
   const updateOrderMutation = trpc.orders.updateStatus.useMutation();
+
+  const handleMapReady = (map: any) => {
+    mapRef.current = map;
+    // Add rider marker
+    if (selectedOrder) {
+      new (window as any).google.maps.Marker({
+        position: { lat: 27.2183, lng: 77.4944 },
+        map: map,
+        title: "Rider Location",
+        icon: "http://maps.google.com/mapfiles/ms/icons/red-dot.png",
+      });
+      map.setCenter({ lat: 27.2183, lng: 77.4944 });
+      map.setZoom(14);
+    }
+  };
 
   const handleAddMenuItem = async () => {
     if (!newItem.name || !newItem.price) {
@@ -302,12 +321,39 @@ export default function RestaurantDashboard() {
                       )}
 
                       {order.status === "confirmed" && (
+                        <div className="space-y-2">
+                          <Button
+                            onClick={() => handleMarkReady(order.id)}
+                            className="w-full bg-orange-500 hover:bg-orange-600"
+                            size="sm"
+                          >
+                            Mark as Ready
+                          </Button>
+                          <Button
+                            onClick={() => {
+                              setSelectedOrder(order);
+                              setShowRiderTracking(true);
+                            }}
+                            className="w-full bg-blue-500 hover:bg-blue-600 flex items-center justify-center gap-2"
+                            size="sm"
+                          >
+                            <MapPin className="w-4 h-4" />
+                            Track Rider
+                          </Button>
+                        </div>
+                      )}
+
+                      {order.status === "ready" && (
                         <Button
-                          onClick={() => handleMarkReady(order.id)}
-                          className="w-full bg-orange-500 hover:bg-orange-600"
+                          onClick={() => {
+                            setSelectedOrder(order);
+                            setShowRiderTracking(true);
+                          }}
+                          className="w-full bg-blue-500 hover:bg-blue-600 flex items-center justify-center gap-2"
                           size="sm"
                         >
-                          Mark as Ready
+                          <MapPin className="w-4 h-4" />
+                          Track Rider
                         </Button>
                       )}
                     </Card>
@@ -317,6 +363,52 @@ export default function RestaurantDashboard() {
             </Card>
           </div>
         </div>
+
+        {/* Rider Tracking Modal */}
+        {showRiderTracking && selectedOrder && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+            <Card className="w-full max-w-2xl max-h-96 overflow-hidden">
+              <div className="bg-gradient-to-r from-orange-600 to-orange-500 text-white p-4 flex items-center justify-between">
+                <div>
+                  <h3 className="font-bold text-lg">Rider Tracking</h3>
+                  <p className="text-sm text-orange-100">Order #{selectedOrder.orderId}</p>
+                </div>
+                <Button
+                  onClick={() => setShowRiderTracking(false)}
+                  variant="ghost"
+                  className="text-white hover:bg-orange-700"
+                >
+                  ✕
+                </Button>
+              </div>
+              <div className="flex gap-4 p-4">
+                <div className="flex-1 rounded-lg overflow-hidden h-64 border-2 border-orange-200">
+                  <MapView onMapReady={handleMapReady} className="w-full h-full" />
+                </div>
+                <div className="w-64 space-y-3">
+                  <div className="bg-blue-50 p-3 rounded-lg border-l-4 border-blue-500">
+                    <p className="text-xs text-gray-600 mb-1">Rider Status</p>
+                    <p className="font-bold text-blue-600">🟢 On the Way</p>
+                    <p className="text-xs text-gray-600 mt-1">ETA: 8 minutes</p>
+                  </div>
+                  <div className="bg-green-50 p-3 rounded-lg border-l-4 border-green-500">
+                    <p className="text-xs text-gray-600 mb-1">Distance</p>
+                    <p className="font-bold text-green-600">1.2 km away</p>
+                  </div>
+                  <div className="bg-purple-50 p-3 rounded-lg border-l-4 border-purple-500">
+                    <p className="text-xs text-gray-600 mb-1">Rider</p>
+                    <p className="font-bold text-purple-600">Rajesh Kumar</p>
+                    <p className="text-xs text-gray-600 mt-1">Rating: 4.8/5</p>
+                  </div>
+                  <div className="bg-yellow-50 p-3 rounded-lg border-l-4 border-yellow-500">
+                    <p className="text-xs text-gray-600 mb-1">Phone</p>
+                    <p className="font-bold text-yellow-600">+91 98765 43210</p>
+                  </div>
+                </div>
+              </div>
+            </Card>
+          </div>
+        )}
       </div>
     </div>
   );

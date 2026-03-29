@@ -1,9 +1,10 @@
+import { useState, useEffect, useRef } from "react";
 import { useParams } from "wouter";
-import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { MapPin, Clock, Phone, MessageCircle, ArrowLeft } from "lucide-react";
+import { MapPin, Clock, Phone, MessageCircle, ArrowLeft, Navigation } from "lucide-react";
 import { trpc } from "@/lib/trpc";
+import { MapView } from "@/components/Map";
 
 export default function OrderTracking() {
   const { orderId } = useParams();
@@ -202,6 +203,36 @@ export default function OrderTracking() {
                 </div>
               </div>
             </Card>
+
+            {/* Rider Tracking */}
+            {(order.status === 'picked_up' || order.status === 'on_the_way') && (
+              <Card className="p-6 bg-gradient-to-br from-orange-50 to-yellow-50 border-2 border-orange-200">
+                <h3 className="font-bold mb-3 flex items-center gap-2">
+                  <Navigation className="w-5 h-5 text-orange-600" />
+                  Rider Tracking
+                </h3>
+                <div className="space-y-3">
+                  <div className="bg-white p-3 rounded-lg">
+                    <p className="text-xs text-gray-600 mb-1">Rider Status</p>
+                    <p className="font-bold text-green-600">🟢 On the Way</p>
+                    <p className="text-xs text-gray-600 mt-1">ETA: 8 minutes</p>
+                  </div>
+                  <div className="bg-white p-3 rounded-lg">
+                    <p className="text-xs text-gray-600 mb-1">Distance</p>
+                    <p className="font-bold text-blue-600">1.2 km away</p>
+                  </div>
+                  <div className="bg-white p-3 rounded-lg">
+                    <p className="text-xs text-gray-600 mb-1">Rider</p>
+                    <p className="font-bold text-purple-600">Rajesh Kumar</p>
+                    <p className="text-xs text-gray-600 mt-1">Rating: 4.8/5</p>
+                  </div>
+                  <Button className="w-full bg-orange-500 hover:bg-orange-600 flex items-center justify-center gap-2">
+                    <MapPin className="w-4 h-4" />
+                    View Live Map
+                  </Button>
+                </div>
+              </Card>
+            )}
 
             {/* Support */}
             <Card className="p-6">
