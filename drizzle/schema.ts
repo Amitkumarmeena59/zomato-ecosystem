@@ -248,3 +248,67 @@ export const commissions = mysqlTable("commissions", {
 
 export type Commission = typeof commissions.$inferSelect;
 export type InsertCommission = typeof commissions.$inferInsert;
+
+/**
+ * Razorpay webhooks table for payment reconciliation
+ */
+export const razorpayWebhooks = mysqlTable("razorpayWebhooks", {
+  id: int("id").autoincrement().primaryKey(),
+  webhookId: varchar("webhookId", { length: 255 }).notNull().unique(),
+  orderId: varchar("orderId", { length: 50 }),
+  paymentId: varchar("paymentId", { length: 255 }).notNull(),
+  event: varchar("event", { length: 100 }).notNull(),
+  amount: decimal("amount", { precision: 10, scale: 2 }),
+  status: varchar("status", { length: 50 }),
+  processed: boolean("processed").default(false),
+  payload: json("payload"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type RazorpayWebhook = typeof razorpayWebhooks.$inferSelect;
+export type InsertRazorpayWebhook = typeof razorpayWebhooks.$inferInsert;
+
+/**
+ * Rider assignments table for auto-assign logic
+ */
+export const riderAssignments = mysqlTable("riderAssignments", {
+  id: int("id").autoincrement().primaryKey(),
+  orderId: int("orderId").notNull(),
+  restaurantId: int("restaurantId").notNull(),
+  riderId: int("riderId"),
+  assignmentStatus: mysqlEnum("assignmentStatus", [
+    "pending",
+    "notified",
+    "accepted",
+    "rejected",
+    "timeout",
+  ]).default("pending"),
+  distance: decimal("distance", { precision: 8, scale: 2 }), // in km
+  notificationSentAt: timestamp("notificationSentAt"),
+  responseReceivedAt: timestamp("responseReceivedAt"),
+  assignmentRound: int("assignmentRound").default(1), // 1st, 2nd, or 3rd rider
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type RiderAssignment = typeof riderAssignments.$inferSelect;
+export type InsertRiderAssignment = typeof riderAssignments.$inferInsert;
+
+/**
+ * Delivery OTP table for fraud prevention
+ */
+export const deliveryOtps = mysqlTable("deliveryOtps", {
+  id: int("id").autoincrement().primaryKey(),
+  orderId: int("orderId").notNull(),
+  riderId: int("riderId").notNull(),
+  customerId: int("customerId").notNull(),
+  otpCode: varchar("otpCode", { length: 10 }).notNull(),
+  isVerified: boolean("isVerified").default(false),
+  verificationAttempts: int("verificationAttempts").default(0),
+  verifiedAt: timestamp("verifiedAt"),
+  expiresAt: timestamp("expiresAt").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type DeliveryOtp = typeof deliveryOtps.$inferSelect;
+export type InsertDeliveryOtp = typeof deliveryOtps.$inferInsert;

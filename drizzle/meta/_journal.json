@@ -15,6 +15,13 @@
       "when": 1774683494110,
       "tag": "0001_bitter_rage",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1775123549930,
+      "tag": "0002_loud_kang",
+      "breakpoints": true
     }
   ]
 }

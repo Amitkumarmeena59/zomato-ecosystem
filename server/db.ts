@@ -13,6 +13,9 @@ import {
   ratings,
   commissions,
   orderTracking,
+  razorpayWebhooks,
+  riderAssignments,
+  deliveryOtps,
 } from "../drizzle/schema";
 import { ENV } from "./_core/env";
 import { nanoid } from "nanoid";
